@@ -1,65 +1,76 @@
+'use client'
+import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import Image from "next/image";
+import { useRef } from "react";
 
 export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    const ref = useRef<HTMLDivElement>(null)
+
+    const rawX = useMotionValue(0)
+    const rawY = useMotionValue(0)
+
+    // Smooth out the mouse tracking with springs
+    const x = useSpring(rawX, { stiffness: 100, damping: 20, mass: 0.5 })
+    const y = useSpring(rawY, { stiffness: 100, damping: 20, mass: 0.5 })
+
+    // Build the gradient string reactively
+    const background = useTransform([x, y], ([latestX, latestY]) =>
+        `radial-gradient(500px circle at ${latestX}px ${latestY}px, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 40%, transparent 70%)`
+    )
+
+    const backgroundLight = useTransform([x, y], ([latestX, latestY]) =>
+        `radial-gradient(500px circle at ${latestX}px ${latestY}px, rgba(82,82,82,0.40) 0%, rgba(64,64,64,0.35) 40%, transparent 70%)`
+    )
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        const bounds = ref.current?.getBoundingClientRect()
+        if (!bounds) return
+        rawX.set(e.clientX - bounds.left)
+        rawY.set(e.clientY - bounds.top)
+    }
+
+    // const handleMouseLeave = () => {
+    //     // Reset to center of element on leave for a graceful fade
+    //     const bounds = ref.current?.getBoundingClientRect()
+    //     if (!bounds) return
+    //     rawX.set(bounds.width / 2)
+    //     rawY.set(bounds.height / 2)
+    // }
+
+    return (
+        <div className="h-screen px-4 mt-2 w-full text-neutral-950 items-center justify-center flex">
+            <motion.div
+                ref={ref}
+                onMouseMove={handleMouseMove}
+                // onMouseLeave={handleMouseLeave}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { duration: 2 } }}
+                className="relative overflow-hidden dark:bg-linear-to-br dark:from-neutral-800 dark:via-neutral-900 dark:to-neutral-950 dark:shadow-neutral-950 rounded-lg px-4 dark:border dark:border-dashed dark:border-neutral-400/40 py-10 flex flex-col-reverse md:flex-row justify-between items-center gap-10 md:gap-2 shadow-md shadow-neutral-600 w-full bg-linear-to-br from-neutral-50 via-neutral-200 to-neutral-50"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+                <motion.div
+                    className="pointer-events-none absolute inset-0 rounded-lg z-0 dark:hidden"
+                    style={{ background: backgroundLight }}
+                />
+
+                <motion.div
+                    className="pointer-events-none absolute inset-0 rounded-lg z-0 hidden dark:block"
+                    style={{ background }}
+                />
+
+                {/* Content */}
+                <div className="relative w-full h-full space-y-3 z-10">
+                    <h1 className="font-rubik md:text-6xl sm:text-5xl text-4xl md:text-left bg-linear-to-br from-orange-800 via-neutral-950 to-orange-800 dark:from-orange-200 dark:via-neutral-100 dark:to-orange-300 bg-clip-text text-transparent text-center">
+                        Mohmmad Saif
+                    </h1>
+                    <p className="flex text-neutral-950/70 dark:text-neutral-50 text-lg flex-wrap items-center text-left tracking-tighter">
+                        I&apos;m a full-stack developer passionate about building fast, scalable and user-focused digital products. I specialize in JavaScript and TypeScript ecosystems, delivering end-to-end solutions across web and mobile platforms.
+                    </p>
+                </div>
+
+                <div className="relative w-full h-96 md:w-[650px] z-10">
+                    <Image src="hero.svg" alt="nextjs" fill className="object-contain" />
+                </div>
+            </motion.div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    );
 }
